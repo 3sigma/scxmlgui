@@ -67,6 +67,7 @@ public class SCXMLEdgeEditor extends SCXMLElementEditor {
     	super(parent,editor,en);
     	setTitle(mxResources.get("titleEdgeEditor"));
     	setLocation(pos);
+    	
 
         edge=(SCXMLEdge) en.getValue();
         //we need 3 editors:

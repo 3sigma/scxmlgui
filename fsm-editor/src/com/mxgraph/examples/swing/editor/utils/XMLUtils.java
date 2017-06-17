@@ -25,12 +25,12 @@ public class XMLUtils {
 			else if (character == '>') {
 				result.append("&gt;");
 			}
-			else if (character == '\"') {
-				result.append("&quot;");
-			}
-			else if (character == '\'') {
-				result.append("&#039;");
-			}
+//			else if (character == '\"') {
+//				result.append("&quot;");
+//			}
+//			else if (character == '\'') {
+//				result.append("&#039;");
+//			}
 			else if (character == '&') {
 				result.append("&amp;");
 			}

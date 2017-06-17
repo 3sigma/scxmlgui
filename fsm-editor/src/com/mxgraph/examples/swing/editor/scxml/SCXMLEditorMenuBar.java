@@ -30,6 +30,7 @@ import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.SCXMLDelete;
 import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.SaveAction;
 import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.ShowSCXMLFindTool;
 import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.ShowSCXMLListener;
+import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.UploadSCXML;
 import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.ToggleDisplayOutsourcedContent;
 import com.mxgraph.examples.swing.editor.scxml.SCXMLEditorActions.ToggleIgnoreStoredLayout;
 import com.mxgraph.swing.mxGraphComponent;
@@ -139,6 +140,7 @@ public class SCXMLEditorMenuBar extends JMenuBar
 		menu = add(new JMenu(mxResources.get("tools")));
 		menu.setMnemonic(KeyEvent.VK_T);
 		menu.add(editor.bind(mxResources.get("showSCXMLListener"), new ShowSCXMLListener()));
+		//menu.add(editor.bind(mxResources.get("uploadSCXML"), new UploadSCXML()));
 		
 		menu = add(new JMenu(mxResources.get("view")));
 		menu.setMnemonic(KeyEvent.VK_V);

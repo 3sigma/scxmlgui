@@ -1,3 +1,6 @@
+**This fork has been modified in order to use the FSM-Editor interface to program our robotic systems ([http://www.3sigma.fr](http://www.3sigma.fr)). The original project is here:
+[https://github.com/fmorbini/scxmlgui](https://github.com/fmorbini/scxmlgui)**
+
 This is an attempt to build a graphical user interface for
 editing SCXML finite state machines.
 

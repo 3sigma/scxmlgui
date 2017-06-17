@@ -118,9 +118,7 @@ public class SCXMLGraph extends mxGraph
 				if ((parent!=null) && (parent.getValue() instanceof SCXMLNode)) {
 					mxCellState stateChild = view.getState(cell);
 					//mxCellState stateParent = view.getState(parent);
-					//System.out.println(node+" "+parent+" "+stateChild+" "+stateParent);
 					Object container=gc.getCellAt((int)stateChild.getCenterX(), (int)stateChild.getCenterY(),true,null,cell,true);
-					//System.out.println(container);
 					if (container!=parent) warnings+=node+" is not graphically contained in its parent "+parent+".\n";
 				}
 
@@ -340,7 +338,7 @@ public class SCXMLGraph extends mxGraph
 	@Override
 	public Object insertEdge(Object parent, String id, Object value,Object source, Object target)
 	{
-		//System.out.println("insert edge: parent:"+parent+" value:"+value+" source:"+source+" target:"+target);
+		System.out.println("insert edge: parent:"+parent+" value:"+value+" source:"+source+" target:"+target);
 		try {
 			int size=getAllOutgoingEdges(source).length;
 			if (value==null) {
@@ -352,6 +350,7 @@ public class SCXMLGraph extends mxGraph
 			updateConnectionOfSCXMLEdge((SCXMLEdge) value,source,target,null);
 			if (((SCXMLEdge)value).getOrder()==null) ((SCXMLEdge)value).setOrder(size);
 			Object edge = insertEdge(parent, ((SCXMLEdge)value).getInternalID(), value, source, target, "");
+			//Object edge = insertEdge(parent, "titi", value, source, target, "");
 			setCellStyle(((SCXMLEdge) value).getStyle((mxCell) edge),edge);
 			return edge;
 		} catch (Exception e) {
@@ -589,7 +588,7 @@ public class SCXMLGraph extends mxGraph
 	@Override
 	public Object connectCell(Object edge, Object terminal, boolean source)
 	{
-		//System.out.println("connect cell: edge:"+edge+" terminal:"+terminal+" source:"+source);
+		System.out.println("connect cell: edge:"+edge+" terminal:"+terminal+" source:"+source);
 		model.beginUpdate();
 		try
 		{
@@ -639,7 +638,6 @@ public class SCXMLGraph extends mxGraph
 		return edge;
 	}
 	private void updateConnectionOfSCXMLEdge(SCXMLEdge value, Object source, Object target, Object previous) throws Exception {
-		//System.out.println("update connectiopn: value:"+value+" source:"+source+" target:"+target+" previous:"+previous);
 		String sourceID=null,targetID=null;
 		if (source!=null) {
 			sourceID=((SCXMLNode)((mxCell)source).getValue()).getID();
@@ -683,7 +681,13 @@ public class SCXMLGraph extends mxGraph
 				return node.getID();
 		} else if (v instanceof SCXMLEdge) {
 			SCXMLEdge edge=((SCXMLEdge)v);
-			return edge.getEvent();
+			// Modif from Nicolas to display the condition on the edge
+			if (edge.getCondition() == "") {
+				return edge.getEvent();
+			}
+			else {
+				return edge.getEvent() + " [" + edge.getCondition() + "]";
+			}
 		} else {
 			return "";
 		}
@@ -748,11 +752,15 @@ public class SCXMLGraph extends mxGraph
 					if (v.isInitial()) tipBody+="onInitialEntry: <pre>"+XMLUtils.escapeStringForXML(v.getOnInitialEntry())+"</pre><br>";
 					String onEntry = v.getOnEntry();
 					if ((onEntry!=null) && (!(onEntry.isEmpty()))) {
-						tipBody+="onEntry:<br><pre>"+XMLUtils.escapeStringForXML(onEntry)+"</pre><br>";
+						tipBody+="Entry:<br><pre>"+XMLUtils.escapeStringForXML(onEntry)+"</pre><br>";
+					}
+					String doScript = v.getScript();
+					if ((doScript!=null) && (!(doScript.isEmpty()))) {
+						tipBody+="Do:<br><pre>"+XMLUtils.escapeStringForXML(doScript)+"</pre><br>";
 					}
 					String onExit = v.getOnExit();
 					if ((onExit!=null) && (!(onExit.isEmpty()))) {
-						tipBody+="onExit:<br><pre>"+XMLUtils.escapeStringForXML(onExit)+"</pre><br>";
+						tipBody+="Exit:<br><pre>"+XMLUtils.escapeStringForXML(onExit)+"</pre><br>";
 					}
 					if (v.isFinal()) tipBody+="exitData: "+v.getDoneData()+"<br>";
 					if (!tipBody.isEmpty()) {

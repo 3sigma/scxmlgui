@@ -117,6 +117,7 @@ public class SCXMLOutsourcingEditor extends SCXMLElementEditor implements Action
 		pack();
 		setVisible(true);
 		
+		
 		SCXMLElementEditor.focusOnTextPanel(tabbedPane.getSelectedComponent());
     }
 	public class CloseAction extends AbstractAction {

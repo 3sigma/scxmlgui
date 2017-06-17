@@ -323,7 +323,7 @@ public class SCXMLGraphEditor extends JPanel
 			file2importer.put(fileName, ie=new SCXMLImportExport());								
 			// read the graph, this will throw an exception if something goes wrong
 			System.out.println("reading "+fileName);
-			ie.readInGraph(ig=new SCXMLGraph(),fileName,preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, true), getRestrictedStatesConfig());
+			ie.readInGraph(ig=new SCXMLGraph(),fileName,preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, false), getRestrictedStatesConfig());
 			ig.setEditor(this);
 			file2graph.put(fileName, ig);
 		}
@@ -1092,7 +1092,7 @@ public class SCXMLGraphEditor extends JPanel
 			//Create the list and put it in a scroll pane.
 			scxmlErrorsList=buildValidationWarningGUI();
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-			add(new JLabel("Validation errors:"));
+			add(new JLabel(mxResources.get("validationErrors")));
 			add(new JScrollPane(scxmlErrorsList));
 			
 			listSelectorHandler=new ValidationCellSelector(scxmlErrorsList, graphComponent);

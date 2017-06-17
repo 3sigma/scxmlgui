@@ -183,6 +183,7 @@ public class SCXMLOutEdgeOrderEditor extends JDialog implements ListSelectionLis
 				SCXMLEdge v=(SCXMLEdge) e.getValue();
 				text=v.getOrder()+": -> "+graph.convertValueToString(e.getTarget())+" ["+graph.convertValueToString(e)+"]";
 			}
+
 			setText(text);
 			if (isSelected) {
 				setBackground(list.getSelectionBackground());

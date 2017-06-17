@@ -14,6 +14,8 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -332,7 +334,7 @@ public class SCXMLEditorActions
 	public static class ToggleIgnoreStoredLayout extends AbstractAction
 	{
 		public static boolean isSelected(SCXMLGraphEditor editor) {
-			return editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, true);
+			return editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, false);
 		}
 		
 		public void actionPerformed(ActionEvent e)
@@ -924,6 +926,19 @@ public class SCXMLEditorActions
 		}
 	}
 
+	public static class UploadSCXML extends AbstractAction
+	{
+		/**
+		 * 
+		 */
+		public void actionPerformed(ActionEvent e)
+		{
+			SCXMLGraphEditor editor = getEditor(e);
+			SCXMLListener scxmlListener=editor.getSCXMLListener();
+			scxmlListener.uploadSCXML();
+		}
+	}
+
 	public static class ToggleDisplayOutsourcedContentInNode extends AbstractAction {
 
 		private mxCell node=null;
@@ -957,7 +972,7 @@ public class SCXMLEditorActions
 						editor.displayOutsourcedContentInNode(node,graph,true,false);
 					}
 				}
-				if (editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, true)) {
+				if (editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, false)) {
 					// apply layout to each cluster from the leaves up:
 					mxClusterLayout clusterLayout=new mxClusterLayout(graph);
 					clusterLayout.execute(graph.getDefaultParent());
@@ -985,7 +1000,7 @@ public class SCXMLEditorActions
 					// enable
 					editor.displayOutsourcedContent(graph, true,true);
 				}
-				if (editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, true)) {
+				if (editor.preferences.getBoolean(SCXMLFileChoser.FileChoserCustomControls.PREFERENCE_IGNORE_STORED_LAYOUT, false)) {
 					// apply layout to each cluster from the leaves up:
 					mxClusterLayout clusterLayout=new mxClusterLayout(graph);
 					clusterLayout.execute(graph.getDefaultParent());

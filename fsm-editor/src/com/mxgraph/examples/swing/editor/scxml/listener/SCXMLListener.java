@@ -8,12 +8,14 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.regex.Matcher;
@@ -53,6 +55,11 @@ import com.mxgraph.model.mxIGraphModel;
 import com.mxgraph.swing.util.CellSelector;
 import com.mxgraph.util.mxResources;
 import com.mxgraph.util.mxUtils;
+import com.jcabi.ssh.SSH;
+import com.jcabi.ssh.Shell;
+import com.jcraft.jsch.*;
+import com.jcabi.ssh.Shell;
+import com.jcabi.ssh.SSHByPassword;
 
 public class SCXMLListener extends JDialog implements ListSelectionListener, WindowListener, ActionListener, DocumentListener {
 	private int status;
@@ -70,6 +77,9 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private JButton saveButton,loadButton,reloadButton;
 	private JButton startStopButton;
 	private JTextField port;
+	private JTextField IP;
+	private JTextField login;
+	private JTextField password;
 
 	ServerSocket socket = null;
 	private Socket clientSocket;
@@ -79,6 +89,10 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private SCXMLGraphEditor editor;
 	
 	private CellSelector cellHighlighter;
+	
+	private static final String PREFERENCE_IP_KEY="SSH_IP";
+	private static final String PREFERENCE_LOGIN_KEY="SSH_LOGIN";
+	private static final String PREFERENCE_PASSWORD_KEY="SSH_PASSWORD";
 
 	public SCXMLListener(JFrame parent, SCXMLGraphEditor editor) {
 		super(parent,"SCXML Listener");
@@ -107,10 +121,28 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	private void populateGUI(JPanel contentPane) {
 
 		JLabel portLabel = new JLabel("port:");
+		JLabel IPLabel = new JLabel("IP:");
+		JLabel loginLabel = new JLabel("Login:");
+		JLabel passwordLabel = new JLabel("Mot de passe:");
 		
 		port = new JTextField(10);
 		port.addActionListener(this);
 		port.getDocument().addDocumentListener(this);
+		
+		IP = new JTextField(16);
+		IP.setText(editor.preferences.get(PREFERENCE_IP_KEY,null));
+		IP.addActionListener(this);
+		IP.getDocument().addDocumentListener(this);
+		
+		login = new JTextField(10);
+		login.setText(editor.preferences.get(PREFERENCE_LOGIN_KEY,null));
+		login.addActionListener(this);
+		login.getDocument().addDocumentListener(this);
+		
+		password = new JTextField(10);
+		password.setText(editor.preferences.get(PREFERENCE_PASSWORD_KEY,null));
+		password.addActionListener(this);
+		password.getDocument().addDocumentListener(this);
 		
 		startStopButton=new JButton(mxResources.get("startSCXMLListener"));
 		startStopButton.setActionCommand("start");
@@ -122,12 +154,20 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 		reloadButton.addActionListener(this);
 		JPanel reloadButtonPane = new JPanel();
 		reloadButtonPane.setLayout(new BoxLayout(reloadButtonPane,BoxLayout.LINE_AXIS));
-		reloadButtonPane.add(reloadButton);
+		//reloadButtonPane.add(reloadButton);
 		
 		JPanel startStopButtonPane = new JPanel();
-		startStopButtonPane.setLayout(new BoxLayout(startStopButtonPane,BoxLayout.LINE_AXIS));
-		startStopButtonPane.add(portLabel);
-		startStopButtonPane.add(port);
+		startStopButtonPane.setLayout(new BoxLayout(startStopButtonPane,BoxLayout.PAGE_AXIS));
+		// Disable port area, hard set to 15555
+		//startStopButtonPane.add(portLabel);
+		//startStopButtonPane.add(port);
+		startStopButtonPane.add(IPLabel);
+		startStopButtonPane.add(IP);
+		startStopButtonPane.add(loginLabel);
+		startStopButtonPane.add(login);
+		startStopButtonPane.add(passwordLabel);
+		startStopButtonPane.add(password);
+		startStopButtonPane.add(Box.createVerticalStrut(5));
 		startStopButtonPane.add(Box.createHorizontalStrut(5));
 		startStopButtonPane.add(startStopButton);
 		startStopButtonPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -152,9 +192,9 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 		//Create a panel that uses BoxLayout.
 		JPanel loadSaveButtonPane = new JPanel();
 		loadSaveButtonPane.setLayout(new BoxLayout(loadSaveButtonPane,BoxLayout.LINE_AXIS));
-		loadSaveButtonPane.add(saveButton);
+		//loadSaveButtonPane.add(saveButton);
 		loadSaveButtonPane.add(Box.createHorizontalGlue());
-		loadSaveButtonPane.add(loadButton);
+		//loadSaveButtonPane.add(loadButton);
 		loadSaveButtonPane.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
 		contentPane.setLayout(new BoxLayout(contentPane,BoxLayout.Y_AXIS));
@@ -238,6 +278,46 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 		stopListener();
 	}
 
+	// Added by Nicolas
+	public void uploadSCXML() {
+		Shell shell;
+		File file = editor.getCurrentFile();
+		// Connect to robot
+		try {
+			//shell = new SSHByPassword("192.168.0.199", 22, "root", "tquad");
+			shell = new SSHByPassword(IP.getText(), 22, login.getText(), password.getText());
+			editor.preferences.put(PREFERENCE_IP_KEY, IP.getText());
+			editor.preferences.put(PREFERENCE_LOGIN_KEY, login.getText());
+			editor.preferences.put(PREFERENCE_PASSWORD_KEY, password.getText());
+			// Send file to robot
+			try {
+				int stdout = new Shell.Safe(shell).exec("cat > /root/programmes_python/scxml/fichier.scxml",
+						  new FileInputStream(file), null, null);
+				System.out.println(stdout);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+				e1.printStackTrace();
+			}
+			// Execute file
+			try {
+				String stdout = new Shell.Plain(shell).exec("echo 'Hello, world!'");
+				System.out.println(stdout);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				setStatus(STOPPED);
+				JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+				e1.printStackTrace();
+			}
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+			e1.printStackTrace();
+		}
+		
+	}
+	// End added by Nicolas
+
 	@Override
 	public void windowActivated(WindowEvent e) {
 		// TODO Auto-generated method stub
@@ -286,9 +366,50 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 	public void actionPerformed(ActionEvent e) {
 		String cmd=e.getActionCommand();
 		Integer portValue;
-		if (cmd.equals("start") && ((portValue=validPort(port.getText()))!=null)) {
+		// Added by Nicolas
+		Shell shell;
+		File file = editor.getCurrentFile();
+		// End added by Nicolas
+		//if (cmd.equals("start") && ((portValue=validPort(port.getText()))!=null)) {
+		if (cmd.equals("start") && ((portValue=validPort("15555"))!=null)) {
 			if (initiateListener(portValue)) {
 				setStatus(WAITING);
+				// Added by Nicolas
+				// Connect to robot
+				try {
+					//shell = new SSHByPassword("192.168.0.199", 22, "root", "tquad");
+					shell = new SSHByPassword(IP.getText(), 22, login.getText(), password.getText());
+					editor.preferences.put(PREFERENCE_IP_KEY, IP.getText());
+					editor.preferences.put(PREFERENCE_LOGIN_KEY, login.getText());
+					editor.preferences.put(PREFERENCE_PASSWORD_KEY, password.getText());
+					// Send file to robot
+					try {
+						int stdout = new Shell.Safe(shell).exec("cat > /root/programmes_python/scxml/fichier.scxml",
+								  new FileInputStream(file), null, null);
+						System.out.println(stdout);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+						e1.printStackTrace();
+					}
+					// Execute file
+					try {
+						//String stdout = new Shell.Plain(shell).exec("/root/programmes_python/startMEF.sh &");
+						int stdout = new Shell.Safe(shell).exec("/root/programmes_python/startQuatreRoues_API_FSM.sh", null, null, null);
+						System.out.println(stdout);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						setStatus(STOPPED);
+						JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+						e1.printStackTrace();
+					}
+				} catch (UnknownHostException e1) {
+					// TODO Auto-generated catch block
+					JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+					e1.printStackTrace();
+				}
+				// End added by Nicolas
+				
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
@@ -306,6 +427,30 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 			}
 		} else if (cmd.equals("stop")) {
 			setStatus(STOPPED);
+			// Added by Nicolas
+			// Connect to robot
+			try {
+				//shell = new SSHByPassword("192.168.0.199", 22, "root", "tquad");
+				shell = new SSHByPassword(IP.getText(), 22, login.getText(), password.getText());
+				// Stop execution of Python scripts on the robot
+				try {
+					//String stdout = new Shell.Plain(shell).exec("/root/programmes_python/startMEF.sh &");
+					int stdout = new Shell.Safe(shell).exec("/root/programmes_python/stopPython_FSM.sh", null, null, null);
+					System.out.println(stdout);
+					String logStr = new Shell.Plain(new Shell.Safe(shell)).exec("cat /root/programmes_python/scxml/FSM.log");
+					System.out.println(logStr);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					setStatus(STOPPED);
+					JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+					e1.printStackTrace();
+				}
+			} catch (UnknownHostException e1) {
+				// TODO Auto-generated catch block
+				JOptionPane.showMessageDialog(editor.getGraphComponent(), "Erreur: connexion impossible.");
+				e1.printStackTrace();
+			}
+			// End added by Nicolas
 		} else if (cmd.equals("save")) {
 			String wd = (lastDir!=null)?lastDir:((editor.getCurrentFile()!=null)?editor.getCurrentFile().getParent():System.getProperty("user.dir"));
 			JFileChooser fc = new JFileChooser(wd);
@@ -419,7 +564,9 @@ public class SCXMLListener extends JDialog implements ListSelectionListener, Win
 			status=PRESTARTING;
 			startStopButton.setActionCommand("start");
 			startStopButton.setText(mxResources.get("startSCXMLListener"));
-			startStopButton.setEnabled(false);
+			//startStopButton.setEnabled(false);
+			// Force true because port is hard set
+			startStopButton.setEnabled(true);
 			port.setText("");
 			port.setEnabled(true);			
 			list.setEnabled(false);

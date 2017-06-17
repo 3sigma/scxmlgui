@@ -47,7 +47,7 @@ public class SCXMLFileChoser extends JFileChooser {
 		public FileChoserCustomControls(SCXMLGraphEditor editor) {
 			ignoreSizes = new JCheckBox(mxResources.get("ignoreStoredLayout"));
 			this.editor=editor;
-			boolean ignoreStoredLayout=editor.preferences.getBoolean(PREFERENCE_IGNORE_STORED_LAYOUT, true);
+			boolean ignoreStoredLayout=editor.preferences.getBoolean(PREFERENCE_IGNORE_STORED_LAYOUT, false);
 			ignoreSizes.setSelected(ignoreStoredLayout);
 			ignoreSizes.addItemListener(this);
 			add(ignoreSizes);
